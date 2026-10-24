@@ -1,0 +1,3056 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="forest">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#0f1215" id="metaThemeColor">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="description" content="Kinsenas Timesheet — Mobile-first offline personal timesheet for recording daily shifts and cutoff hours.">
+  <title>Kinsenas Timesheet</title>
+  <link rel="manifest" href="manifest.json">
+  <style>
+    :root[data-theme="forest"] {
+      --bg-app: #0f1215;
+      --bg-header: rgba(15, 18, 21, 0.96);
+      --bg-nav: rgba(15, 18, 21, 0.98);
+      --bg-summary: #1a2419;
+      --border-summary: #2e3f2b;
+      --text-main: #f3f5f1;
+      --text-sage: #8da67e;
+      --text-muted: #9aa299;
+      --border-subtle: rgba(141, 166, 126, 0.18);
+
+      --card-bg: #e2dfd5;
+      --card-bg-alt: #d6d3c8;
+      --card-text: #1c1f1b;
+      --card-muted: #52564e;
+      --card-border: #c5c2b6;
+
+      --btn-olive: #6c7f5b;
+      --btn-olive-active: #5a6b4b;
+      --btn-olive-text: #ffffff;
+      --accent-highlight: #b8e2a3;
+      --danger: #b43225;
+      --danger-bg: rgba(180, 50, 37, 0.1);
+      --danger-border: rgba(180, 50, 37, 0.28);
+      --warning: #a65e0e;
+      --warning-bg: rgba(166, 94, 14, 0.12);
+      --focus-ring: #9ec08c;
+    }
+
+    :root[data-theme="mint"] {
+      --bg-app: #f0f4ef;
+      --bg-header: rgba(240, 244, 239, 0.96);
+      --bg-nav: rgba(255, 255, 255, 0.98);
+      --bg-summary: #213220;
+      --border-summary: #30472e;
+      --text-main: #182218;
+      --text-sage: #385530;
+      --text-muted: #546352;
+      --border-subtle: rgba(56, 85, 48, 0.16);
+
+      --card-bg: #ffffff;
+      --card-bg-alt: #f3f6f2;
+      --card-text: #182017;
+      --card-muted: #545d52;
+      --card-border: #d8dfd6;
+
+      --btn-olive: #3f5d34;
+      --btn-olive-active: #324a29;
+      --btn-olive-text: #ffffff;
+      --accent-highlight: #b8e2a3;
+      --danger: #bf2d1d;
+      --danger-bg: rgba(191, 45, 29, 0.08);
+      --danger-border: rgba(191, 45, 29, 0.25);
+      --warning: #9a5306;
+      --warning-bg: rgba(154, 83, 6, 0.1);
+      --focus-ring: #3f5d34;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    html, body {
+      overflow-x: hidden;
+      background-color: var(--bg-app);
+      color: var(--text-main);
+      min-height: 100vh;
+      min-height: 100dvh;
+    }
+
+    body {
+      max-width: 540px;
+      margin: 0 auto;
+      padding-bottom: calc(84px + env(safe-area-inset-bottom, 0px));
+    }
+
+    button, input, select {
+      font: inherit;
+    }
+
+    :focus-visible {
+      outline: 2px solid var(--focus-ring);
+      outline-offset: 2px;
+    }
+
+    .svg-icon {
+      width: 18px;
+      height: 18px;
+      stroke: currentColor;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      fill: none;
+      flex-shrink: 0;
+    }
+
+    /* Compact Top Header */
+    .top-header {
+      position: sticky;
+      top: 0;
+      z-index: 40;
+      background-color: var(--bg-header);
+      padding: calc(10px + env(safe-area-inset-top, 0px)) 16px 10px;
+      border-bottom: 1px solid var(--border-subtle);
+      backdrop-filter: blur(8px);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .brand-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+    }
+
+    .brand-logo {
+      width: 28px;
+      height: 28px;
+      border-radius: 7px;
+      background: var(--bg-summary);
+      border: 1px solid var(--border-summary);
+      color: var(--accent-highlight);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .brand-title {
+      font-size: 0.96rem;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      color: var(--text-main);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+
+    .save-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.76rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      padding: 4px 8px;
+      border-radius: 999px;
+      background: rgba(141, 166, 126, 0.1);
+    }
+
+    .save-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background-color: #6ccf5e;
+      flex-shrink: 0;
+    }
+
+    .save-status.saving .save-dot {
+      background-color: #e6b84d;
+    }
+
+    .save-status.error {
+      color: #ff9c91;
+      background: rgba(185, 56, 41, 0.22);
+    }
+
+    .save-status.error .save-dot {
+      background-color: #ff5b4c;
+    }
+
+    .icon-btn {
+      background: rgba(141, 166, 126, 0.12);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-main);
+      border-radius: 10px;
+      min-height: 40px;
+      min-width: 40px;
+      padding: 0 10px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      cursor: pointer;
+    }
+
+    .icon-btn:active {
+      opacity: 0.75;
+    }
+
+    /* Views */
+    .tab-view {
+      display: none;
+      padding: 14px 16px 24px;
+    }
+
+    .tab-view.active {
+      display: block;
+    }
+
+    /* Home Tab: Compact Current-Period Overview */
+    .compact-overview {
+      background-color: var(--bg-summary);
+      border: 1px solid var(--border-summary);
+      border-radius: 14px;
+      padding: 12px 14px;
+      color: #f3f5f1;
+      margin-bottom: 14px;
+    }
+
+    .overview-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .overview-period {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.86rem;
+      font-weight: 700;
+      color: #e4ebe0;
+    }
+
+    .overview-change-btn {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(141, 166, 126, 0.3);
+      color: #d5dcd2;
+      border-radius: 8px;
+      padding: 4px 10px;
+      min-height: 32px;
+      font-size: 0.76rem;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      cursor: pointer;
+    }
+
+    .overview-stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      padding-top: 10px;
+    }
+
+    .overview-stats.two-cols {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    .stat-item {
+      min-width: 0;
+    }
+
+    .stat-label {
+      font-size: 0.68rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: #9ab08e;
+      margin-bottom: 2px;
+    }
+
+    .stat-value {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: #ffffff;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .stat-value.earnings {
+      color: var(--accent-highlight);
+    }
+
+    /* Daily Timesheet Cards */
+    .days-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .day-card {
+      background-color: var(--card-bg);
+      color: var(--card-text);
+      border-radius: 14px;
+      border: 1px solid var(--card-border);
+      overflow: hidden;
+    }
+
+    .day-card.today-highlight {
+      outline: 2px solid var(--btn-olive);
+    }
+
+    .day-header {
+      width: 100%;
+      background: transparent;
+      border: none;
+      text-align: left;
+      padding: 12px 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+      min-height: 60px;
+      color: inherit;
+    }
+
+    .day-header-left {
+      min-width: 0;
+      flex: 1;
+    }
+
+    .day-title-row {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .day-title {
+      font-size: 1.02rem;
+      font-weight: 700;
+      color: var(--card-text);
+    }
+
+    .badge {
+      font-size: 0.66rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      padding: 2px 6px;
+      border-radius: 5px;
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+    }
+
+    .badge-today {
+      background: var(--btn-olive);
+      color: #ffffff;
+    }
+
+    .badge-compacted {
+      background: rgba(28, 31, 27, 0.12);
+      color: var(--card-muted);
+    }
+
+    .badge-invalid {
+      background: var(--danger-bg);
+      color: var(--danger);
+      border: 1px solid var(--danger-border);
+    }
+
+    .day-subtitle {
+      font-size: 0.82rem;
+      color: var(--card-muted);
+      margin-top: 2px;
+    }
+
+    .day-header-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+
+    .day-metrics {
+      text-align: right;
+    }
+
+    .day-hours-pill {
+      font-size: 0.92rem;
+      font-weight: 700;
+      color: var(--card-text);
+    }
+
+    .day-earnings-preview {
+      font-size: 0.76rem;
+      font-weight: 600;
+      color: var(--card-muted);
+      display: block;
+    }
+
+    .quick-add-btn {
+      background: rgba(108, 127, 91, 0.14);
+      border: 1px solid var(--btn-olive);
+      color: var(--card-text);
+      border-radius: 999px;
+      min-height: 36px;
+      padding: 0 12px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      cursor: pointer;
+    }
+
+    .chevron-icon {
+      width: 18px;
+      height: 18px;
+      color: var(--card-muted);
+      transition: transform 0.15s ease;
+    }
+
+    .day-card.expanded .chevron-icon {
+      transform: rotate(180deg);
+    }
+
+    .day-body {
+      display: none;
+      padding: 0 14px 14px;
+      border-top: 1px solid var(--card-border);
+    }
+
+    .day-card.expanded .day-body {
+      display: block;
+    }
+
+    /* Shift Editors inside Day Card */
+    .shift-list {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .shift-item {
+      padding: 12px 0;
+      border-bottom: 1px solid var(--card-border);
+    }
+
+    .shift-item:last-child {
+      border-bottom: none;
+    }
+
+    .shift-top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+      gap: 8px;
+    }
+
+    .shift-label {
+      font-size: 0.76rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      color: var(--card-muted);
+    }
+
+    .shift-top-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .shift-duration {
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: var(--card-text);
+    }
+
+    .shift-duration.invalid {
+      color: var(--danger);
+    }
+
+    .time-inputs-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .time-field {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .time-field label {
+      font-size: 0.76rem;
+      font-weight: 600;
+      color: var(--card-muted);
+    }
+
+    input[type="time"] {
+      width: 100%;
+      background: var(--card-bg-alt);
+      border: 1px solid var(--card-border);
+      color: var(--card-text);
+      font-size: 0.98rem;
+      font-weight: 700;
+      padding: 8px 10px;
+      border-radius: 10px;
+      min-height: 44px;
+    }
+
+    input[type="time"].invalid-input {
+      border-color: var(--danger);
+      background: var(--danger-bg);
+    }
+
+    .validation-msg {
+      margin-top: 8px;
+      padding: 8px 10px;
+      border-radius: 8px;
+      background: var(--danger-bg);
+      border: 1px solid var(--danger-border);
+      color: var(--danger);
+      font-size: 0.78rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .remove-shift-btn {
+      background: var(--danger-bg);
+      color: var(--danger);
+      border: 1px solid var(--danger-border);
+      border-radius: 8px;
+      padding: 6px 10px;
+      font-size: 0.76rem;
+      font-weight: 700;
+      min-height: 36px;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      cursor: pointer;
+    }
+
+    .day-actions-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .btn-primary, .btn-secondary, .btn-danger {
+      min-height: 44px;
+      border-radius: 10px;
+      padding: 0 14px;
+      font-size: 0.88rem;
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      cursor: pointer;
+      flex: 1;
+    }
+
+    .btn-primary {
+      background: var(--btn-olive);
+      color: var(--btn-olive-text);
+      border: none;
+    }
+
+    .btn-secondary {
+      background: transparent;
+      color: var(--card-text);
+      border: 1.5px solid var(--btn-olive);
+    }
+
+    .btn-danger {
+      background: var(--danger-bg);
+      color: var(--danger);
+      border: 1px solid var(--danger-border);
+    }
+
+    .compactor-trigger-btn {
+      margin-top: 8px;
+      width: 100%;
+      min-height: 40px;
+      border-radius: 10px;
+      border: 1px dashed var(--btn-olive);
+      background: rgba(108, 127, 91, 0.12);
+      color: var(--card-text);
+      font-size: 0.8rem;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      cursor: pointer;
+      padding: 6px 10px;
+    }
+
+    /* Per-Day Break Deduction Control & Duration Breakdown */
+    .day-break-box {
+      margin-top: 10px;
+      padding: 12px;
+      border-radius: 12px;
+      background: var(--card-bg-alt);
+      border: 1px solid var(--card-border);
+    }
+
+    .day-break-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .day-break-title {
+      font-size: 0.76rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      color: var(--card-muted);
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .day-break-mode-tag {
+      font-size: 0.74rem;
+      font-weight: 700;
+      color: var(--card-text);
+    }
+
+    .break-segmented {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 6px;
+    }
+
+    .break-seg-btn {
+      min-height: 38px;
+      border-radius: 8px;
+      border: 1.5px solid var(--card-border);
+      background: var(--card-bg);
+      color: var(--card-text);
+      font-size: 0.76rem;
+      font-weight: 700;
+      padding: 4px 6px;
+      cursor: pointer;
+      text-align: center;
+      line-height: 1.2;
+      transition: background 0.12s ease, border-color 0.12s ease;
+    }
+
+    .break-seg-btn.active {
+      background: var(--btn-olive);
+      color: var(--btn-olive-text);
+      border-color: var(--btn-olive);
+    }
+
+    .day-duration-summary {
+      margin-top: 10px;
+      padding-top: 8px;
+      border-top: 1px solid var(--card-border);
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      font-size: 0.82rem;
+    }
+
+    .day-dur-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: var(--card-muted);
+    }
+
+    .day-dur-row.net-row {
+      color: var(--card-text);
+      font-weight: 700;
+      font-size: 0.88rem;
+      padding-top: 2px;
+    }
+
+    /* Cutoff Break Deduction Section */
+    .cutoff-break-section {
+      margin-top: 14px;
+      padding: 14px;
+      border-radius: 12px;
+      background: var(--card-bg-alt);
+      border: 1px solid var(--card-border);
+    }
+
+    .cutoff-break-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 8px;
+    }
+
+    .cutoff-break-heading {
+      font-size: 0.92rem;
+      font-weight: 700;
+      color: var(--card-text);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .cutoff-break-sub {
+      font-size: 0.78rem;
+      color: var(--card-muted);
+      margin-top: 2px;
+    }
+
+    .toggle-btn {
+      min-height: 40px;
+      padding: 0 14px;
+      border-radius: 999px;
+      border: 1.5px solid var(--card-border);
+      background: var(--card-bg);
+      color: var(--card-text);
+      font-size: 0.8rem;
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+
+    .toggle-btn[aria-pressed="true"] {
+      background: var(--btn-olive);
+      color: var(--btn-olive-text);
+      border-color: var(--btn-olive);
+    }
+
+    .cutoff-break-meta {
+      font-size: 0.78rem;
+      color: var(--card-muted);
+      line-height: 1.4;
+      border-top: 1px solid var(--card-border);
+      padding-top: 8px;
+    }
+
+    /* Section Panel Card (Used in Cutoff & Data Tabs) */
+    .panel-card {
+      background: var(--card-bg);
+      color: var(--card-text);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 16px;
+      margin-bottom: 14px;
+    }
+
+    .panel-title {
+      font-size: 1rem;
+      font-weight: 700;
+      margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--card-text);
+    }
+
+    .panel-desc {
+      font-size: 0.82rem;
+      color: var(--card-muted);
+      margin-bottom: 14px;
+      line-height: 1.4;
+    }
+
+    /* Cutoff Tab Specifics */
+    .month-SubNav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .month-display {
+      text-align: center;
+      flex: 1;
+    }
+
+    .month-display-title {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--card-text);
+    }
+
+    .month-display-sub {
+      font-size: 0.78rem;
+      color: var(--card-muted);
+    }
+
+    .nav-square-btn {
+      min-width: 44px;
+      min-height: 44px;
+      border-radius: 10px;
+      border: 1px solid var(--card-border);
+      background: var(--card-bg-alt);
+      color: var(--card-text);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+
+    .cutoff-cards-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin: 14px 0;
+    }
+
+    .cutoff-option-btn {
+      background: var(--card-bg-alt);
+      border: 2px solid var(--card-border);
+      border-radius: 12px;
+      padding: 12px;
+      text-align: left;
+      cursor: pointer;
+      color: var(--card-text);
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      min-height: 82px;
+      position: relative;
+    }
+
+    .cutoff-option-btn.selected {
+      border-color: var(--btn-olive);
+      background: rgba(108, 127, 91, 0.14);
+    }
+
+    .cutoff-opt-tag {
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: var(--card-muted);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .cutoff-option-btn.selected .cutoff-opt-tag {
+      color: var(--btn-olive);
+    }
+
+    .cutoff-opt-title {
+      font-size: 0.98rem;
+      font-weight: 700;
+    }
+
+    .cutoff-opt-range {
+      font-size: 0.8rem;
+      color: var(--card-muted);
+    }
+
+    .cutoff-summary-box {
+      background: var(--bg-summary);
+      color: #f3f5f1;
+      border-radius: 12px;
+      padding: 14px;
+      margin-top: 8px;
+    }
+
+    .cutoff-summary-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 6px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      font-size: 0.88rem;
+    }
+
+    .cutoff-summary-row:last-child {
+      border-bottom: none;
+    }
+
+    .cutoff-summary-row strong {
+      font-size: 1rem;
+    }
+
+    /* Form Controls in Data Tab */
+    .form-group {
+      margin-bottom: 12px;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: var(--card-muted);
+      margin-bottom: 5px;
+    }
+
+    .form-input, .form-select {
+      width: 100%;
+      min-height: 44px;
+      border-radius: 10px;
+      border: 1px solid var(--card-border);
+      background: var(--card-bg-alt);
+      color: var(--card-text);
+      padding: 8px 12px;
+      font-size: 0.95rem;
+      font-weight: 600;
+    }
+
+    .theme-selector-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .theme-option-btn {
+      min-height: 48px;
+      border-radius: 10px;
+      border: 2px solid var(--card-border);
+      background: var(--card-bg-alt);
+      color: var(--card-text);
+      font-weight: 700;
+      font-size: 0.88rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      cursor: pointer;
+    }
+
+    .theme-option-btn.active {
+      border-color: var(--btn-olive);
+      background: rgba(108, 127, 91, 0.14);
+    }
+
+    .swatch-dot {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      border: 1px solid rgba(0, 0, 0, 0.25);
+    }
+
+    .storage-notice {
+      background: rgba(108, 127, 91, 0.12);
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      padding: 10px 12px;
+      font-size: 0.8rem;
+      color: var(--card-muted);
+      line-height: 1.45;
+      margin-bottom: 14px;
+      display: flex;
+      gap: 8px;
+      align-items: flex-start;
+    }
+
+    /* Fixed Bottom Navigation */
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      z-index: 50;
+      background-color: var(--bg-nav);
+      border-top: 1px solid var(--border-subtle);
+      padding-bottom: env(safe-area-inset-bottom, 0px);
+      backdrop-filter: blur(10px);
+    }
+
+    .bottom-nav-inner {
+      max-width: 540px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      height: 62px;
+    }
+
+    .nav-tab-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      font-size: 0.74rem;
+      font-weight: 600;
+      cursor: pointer;
+      position: relative;
+      min-height: 48px;
+    }
+
+    .nav-tab-btn.active {
+      color: var(--text-sage);
+      font-weight: 700;
+    }
+
+    .nav-tab-btn.active::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      width: 36px;
+      height: 3px;
+      border-radius: 0 0 4px 4px;
+      background: var(--btn-olive);
+    }
+
+    /* Native Dialog Modal */
+    dialog.app-dialog {
+      margin: auto;
+      width: calc(100% - 24px);
+      max-width: 480px;
+      max-height: 88vh;
+      max-height: 88dvh;
+      border: 1px solid var(--card-border);
+      border-radius: 18px;
+      background: var(--card-bg);
+      color: var(--card-text);
+      padding: 0;
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45);
+      overflow: hidden;
+    }
+
+    dialog.app-dialog::backdrop {
+      background: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(2px);
+    }
+
+    .dialog-content {
+      padding: 18px;
+      max-height: 88vh;
+      max-height: 88dvh;
+      overflow-y: auto;
+    }
+
+    .dialog-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+      gap: 8px;
+    }
+
+    .dialog-title {
+      font-size: 1.08rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .dialog-close-btn {
+      background: transparent;
+      border: none;
+      color: var(--card-muted);
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+
+    /* Undo & Status Toast (Positioned cleanly above bottom nav) */
+    .toast-bar {
+      position: fixed;
+      bottom: calc(74px + env(safe-area-inset-bottom, 0px));
+      left: 50%;
+      transform: translateX(-50%);
+      width: calc(100% - 32px);
+      max-width: 508px;
+      background: #1a2419;
+      color: #f3f5f1;
+      border: 1px solid #3f583b;
+      border-radius: 12px;
+      padding: 10px 14px;
+      display: none;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      z-index: 60;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+      font-size: 0.84rem;
+    }
+
+    .toast-bar.show {
+      display: flex;
+    }
+
+    .undo-btn {
+      background: #8da67e;
+      color: #0f1215;
+      border: none;
+      border-radius: 8px;
+      padding: 6px 12px;
+      font-weight: 700;
+      font-size: 0.8rem;
+      min-height: 34px;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- COMPACT TOP HEADER -->
+  <header class="top-header">
+    <div class="brand-group">
+      <span class="brand-logo" aria-hidden="true">
+        <svg class="svg-icon" viewBox="0 0 24 24">
+          <circle cx="12" cy="12" r="9"></circle>
+          <polyline points="12 7 12 12 15.5 14"></polyline>
+        </svg>
+      </span>
+      <h1 class="brand-title">Kinsenas Timesheet</h1>
+    </div>
+
+    <div class="header-right">
+      <div class="save-status" id="saveStatusBadge" role="status" aria-live="polite">
+        <span class="save-dot" aria-hidden="true"></span>
+        <span id="saveIndicatorText">Saved</span>
+      </div>
+      <button type="button" class="icon-btn" id="headerThemeBtn" aria-label="Switch color theme" title="Switch color theme">
+        <svg class="svg-icon" id="headerThemeIcon" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+        </svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- TAB 1: HOME (MAIN WORKING SCREEN) -->
+  <main id="viewHome" class="tab-view active" aria-label="Home Timesheet">
+    <section class="compact-overview" aria-label="Selected cutoff summary">
+      <div class="overview-top">
+        <div class="overview-period">
+          <svg class="svg-icon" viewBox="0 0 24 24" aria-hidden="true" style="width:16px;height:16px;color:#8da67e;">
+            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+            <line x1="16" y1="2" x2="16" y2="6"></line>
+            <line x1="8" y1="2" x2="8" y2="6"></line>
+            <line x1="3" y1="10" x2="21" y2="10"></line>
+          </svg>
+          <span id="homePeriodTitle">October 2026 · 1st Kinsenas (1–15)</span>
+        </div>
+        <button type="button" class="overview-change-btn" id="homeSwitchPeriodBtn" aria-label="Change month or cutoff period">
+          <span>Period</span>
+          <svg class="svg-icon" viewBox="0 0 24 24" aria-hidden="true" style="width:14px;height:14px;">
+            <polyline points="9 18 15 12 9 6"></polyline>
+          </svg>
+        </button>
+      </div>
+
+      <div class="overview-stats" id="homeStatsGrid">
+        <div class="stat-item">
+          <div class="stat-label">Total Hours</div>
+          <div class="stat-value" id="homeTotalHours">0h 00m</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-label">Workdays</div>
+          <div class="stat-value" id="homeWorkdays">0 days</div>
+        </div>
+        <div class="stat-item" id="homeEarningsCol">
+          <div class="stat-label">Est. Earnings</div>
+          <div class="stat-value earnings" id="homeEstEarnings">₱0.00</div>
+        </div>
+      </div>
+    </section>
+
+    <div class="days-list" id="daysContainer"></div>
+  </main>
+
+  <!-- TAB 2: CUTOFF (MONTH & KINSENAS SELECTION) -->
+  <section id="viewCutoff" class="tab-view" aria-label="Cutoff and Month Selection">
+    <div class="panel-card">
+      <div class="panel-title">
+        <svg class="svg-icon" viewBox="0 0 24 24" aria-hidden="true">
+          <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+          <line x1="16" y1="2" x2="16" y2="6"></line>
+          <line x1="8" y1="2" x2="8" y2="6"></line>
+          <line x1="3" y1="10" x2="21" y2="10"></line>
+        </svg>
+        <span>Select Month &amp; Cutoff</span>
+      </div>
+      <p class="panel-desc">Navigate across past or future months and choose between the 1st or 2nd kinsenas period.</p>
+
+      <div class="month-SubNav">
+        <button type="button" class="nav-square-btn" id="prevMonthBtn" aria-label="Previous Month">
+          <svg class="svg-icon" viewBox="0 0 24 24" aria-hidden="true">
+            <polyline points="15 18 9 12 15 6"></polyline>
+          </svg>
+        </button>
+
+        <div class="month-display">
+          <div class="month-display-title" id="cutoffMonthLabel">October 2026</div>
+          <div class="month-display-sub" id="cutoffDaysCountLabel">31 days in month</div>
+        </div>
+
+        <button type="button" class="nav-square-btn" id="nextMonthBtn" aria-label="Next Month">
+          <svg class="svg-icon" viewBox="0 0 24 24" aria-hidden="true">
+            <polyline points="9 18 15 12 9 6"></polyline>
+          </svg>
+        </button>
+      </div>
+
+      <div style="display:flex; gap:8px; margin-bottom:14px;">
+        <input type="month" class="form-input" id="directMonthInput" aria-label="Jump to specific month and year" style="flex:1;">
+        <button type="button" class="btn-secondary" id="jumpCurrentPeriodBtn" style="flex:0 0 auto;">
+          <svg class="svg-icon" viewBox="0 0 24 24" aria-hidden="true">
+            <circle cx="12" cy="12" r="10"></circle>
+            <polyline points="12 6 12 12 16 14"></polyline>
+          </svg>
+          <span>Current Period</span>
+        </button>
+      </div>
+
+      <div class="cutoff-cards-grid" role="group" aria-label="Cutoff half selection">
+        <button type="button" class="cutoff-option-btn selected" id="selectCutoff1Btn">
+          <div class="cutoff-opt-tag">
+            <span>First Cutoff</span>
+            <svg class="svg-icon" viewBox="0 0 24 24" aria-hidden="true" style="width:15px;height:15px;">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+          </div>
+          <div class="cutoff-opt-title">1st Kinsenas</div>
+          <div class="cutoff-opt-range">Days 1 – 15</div>
+        </button>
+
+        <button type="button" class="cutoff-option-btn" id="selectCutoff2Btn">
+          <div class="cutoff-opt-tag">
+            <span>Second Cutoff</span>
+            <svg class="svg-icon" viewBox="0 0 24 24" aria-hidden="true" style="width:15px;height:15px;">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+          </div>
+          <div class="cutoff-opt-title">2nd Kinsenas</div>
+          <div class="cutoff-opt-range" id="cutoff2RangeText">Days 16 – 31</div>
+        </button>
+      </div>
+
+      <div class="cutoff-summary-box" aria-label="Selected cutoff totals">
+        <div class="cutoff-summary-row">
+          <span>Selected Period</span>
+          <strong id="cutoffSummaryPeriod">Oct 1 – Oct 15, 2026</strong>
+        </div>
+        <div class="cutoff-summary-row">
+          <span>Net Working Hours</span>
+          <strong id="cutoffSummaryHours">0h 00m</strong>
+        </div>
+        <div class="cutoff-summary-row">
+          <span>Recorded Workdays</span>
+          <strong id="cutoffSummaryDays">0 days</strong>
+        </div>
+        <div class="cutoff-summary-row" id="cutoffSummaryEarningsRow">
+          <span>Estimated Earnings</span>
+          <strong id="cutoffSummaryEarnings" style="color:var(--accent-highlight);">₱0.00</strong>
+        </div>
+      </div>
+
+      <!-- Cutoff-Wide Break Deduction Default -->
+      <div class="cutoff-break-section" aria-labelledby="cutoffBreakHeading">
+        <div class="cutoff-break-top">
+          <div>
+            <div class="cutoff-break-heading" id="cutoffBreakHeading">
+              <svg class="svg-icon" viewBox="0 0 24 24" aria-hidden="true" style="width:16px;height:16px;">
+                <path d="M18 8h1a4 4 0 0 1 0 8h-1"></path>
+                <path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"></path>
+                <line x1="6" y1="1" x2="6" y2="4"></line>
+                <line x1="10" y1="1" x2="10" y2="4"></line>
+                <line x1="14" y1="1" x2="14" y2="4"></line>
+              </svg>
+              <span>Break Deduction</span>
+            </div>
+            <div class="cutoff-break-sub" id="cutoffBreakStatusText">Default for this cutoff: Deduct 1h (60m)</div>
+          </div>
+
+          <button type="button" class="toggle-btn" id="toggleCutoffBreakBtn" aria-pressed="true">
+            <span id="toggleCutoffBreakLabel">Enabled (−1h)</span>
+          </button>
+        </div>
+
+        <div class="cutoff-break-meta">
+          <strong>Standard deduction: 60 minutes (1 hour) once per day.</strong> Applies by default to days in <span id="cutoffBreakPeriodLabel">this cutoff</span> without an automatic minimum-shift threshold. Individual days can override this setting (<em>Default</em>, <em>Deduct 1 hour</em>, or <em>No deduction</em>) inside their daily card.
+        </div>
+      </div>
+
+      <button type="button" class="btn-primary" id="viewCutoffInHomeBtn" style="width:100%; margin-top:14px;">
+        <span>Open Daily Entries in Home</span>
+        <svg class="svg-icon" viewBox="0 0 24 24" aria-hidden="true">
+          <line x1="5" y1="12" x2="19" y2="12"></line>
+          <polyline points="12 5 19 12 12 19"></polyline>
+        </svg>
+      </button>
+    </div>
+  </section>
+
+  <!-- TAB 3: DATA (RATE SETTINGS, THEME, BACKUP & RESTORE) -->
+  <section id="viewData" class="tab-view" aria-label="Settings and Data Management">
+    <!-- Earnings Configuration -->
+    <div class="panel-card">
+      <div class="panel-title">
+        <svg class="svg-icon" viewBox="0 0 24 24" aria-hidden="true">
+          <rect x="2" y="5" width="20" height="14" rx="2"></rect>
+          <line x1="2" y1="10" x2="22" y2="10"></line>
+        </svg>
+        <span>Estimated Earnings Rate (Optional)</span>
+      </div>
+      <p class="panel-desc">Configure an optional Philippine Peso (₱) rate to estimate daily and cutoff earnings. Set rate to 0 to hide earnings estimates.</p>
+
+      <div class="form-group">
+        <label class="form-label" for="rateTypeInput">Rate Type</label>
+        <select class="form-select" id="rateTypeInput">
+          <option value="hourly">Hourly Rate (₱ / hour)</option>
+          <option value="daily">Daily Rate (₱ / day, prorated)</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="pesoRateInput">Rate Amount (PHP ₱)</label>
+        <input type="number" step="0.01" min="0" class="form-input" id="pesoRateInput" placeholder="e.g. 125.00">
+      </div>
+
+      <div class="form-group" id="hoursPerDayGroup" style="display:none;">
+        <label class="form-label" for="standardHoursInput">Standard Working Hours per Day</label>
+        <input type="number" step="0.5" min="1" max="24" class="form-input" id="standardHoursInput" value="8">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="allowanceInput">Optional Fixed Allowance / Bonus per Cutoff (₱)</label>
+        <input type="number" step="0.01" min="0" class="form-input" id="allowanceInput" placeholder="0.00">
+      </div>
+
+      <button type="button" class="btn-primary" id="saveSettingsBtn" style="width:100%;">
+        <svg class="svg-icon" viewBox="0 0 24 24" aria-hidden="true">
+          <polyline points="20 6 9 17 4 12"></polyline>
+        </svg>
+        <span>Save Rate Settings</span>
+      </button>
+    </div>
+
+    <!-- Theme Appearance -->
+    <div class="panel-card">
+      <div class="panel-title">
+        <svg class="svg-icon" viewBox="0 0 24 24" aria-hidden="true">
+          <circle cx="12" cy="12" r="5"></circle>
+          <line x1="12" y1="1" x2="12" y2="3"></line>
+          <line x1="12" y1="21" x2="12" y2="23"></line>
+          <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+          <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+          <line x1="1" y1="12" x2="3" y2="12"></line>
+          <line x1="21" y1="12" x2="23" y2="12"></line>
+        </svg>
+        <span>Theme Preference</span>
+      </div>
+      <p class="panel-desc">Choose between Forest (dark charcoal &amp; warm neutral cards) and Mint (light background &amp; crisp white cards).</p>
+
+      <div class="theme-selector-grid" role="group" aria-label="Color theme">
+        <button type="button" class="theme-option-btn" id="themeForestBtn">
+          <span class="swatch-dot" style="background:#1f2b1d;"></span>
+          <span>Forest Dark</span>
+        </button>
+        <button type="button" class="theme-option-btn" id="themeMintBtn">
+          <span class="swatch-dot" style="background:#f0f4ef;"></span>
+          <span>Mint Light</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Backup, Restore & Data Management -->
+    <div class="panel-card">
+      <div class="panel-title">
+        <svg class="svg-icon" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+          <polyline points="7 10 12 15 17 10"></polyline>
+          <line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>
+        <span>Offline Storage &amp; Backup</span>
+      </div>
+
+      <div class="storage-notice">
+        <svg class="svg-icon" viewBox="0 0 24 24" aria-hidden="true" style="margin-top:2px;">
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="12" y1="16" x2="12" y2="12"></line>
+          <line x1="12" y1="8" x2="12.01" y2="8"></line>
+        </svg>
+        <div>
+          All timesheet records are saved locally on this browser and device using IndexedDB. Clearing browser site data or losing your device will erase local records. Export a JSON backup periodically to keep a safe copy.
+        </div>
+      </div>
+
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:14px;">
+        <button type="button" class="btn-secondary" id="exportJsonBtn">
+          <svg class="svg-icon" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+          </svg>
+          <span>Export JSON</span>
+        </button>
+        <button type="button" class="btn-secondary" id="importJsonBtn">
+          <svg class="svg-icon" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="17 8 12 3 7 8"></polyline>
+            <line x1="12" y1="3" x2="12" y2="15"></line>
+          </svg>
+          <span>Restore JSON</span>
+        </button>
+        <input type="file" id="importFileInput" accept=".json,application/json" style="display:none;">
+      </div>
+
+      <div style="border-top:1px solid var(--card-border); padding-top:14px;">
+        <div class="form-label">Current Cutoff Data Management</div>
+        <p class="panel-desc" style="margin-bottom:10px;">Delete all recorded shifts in the currently selected cutoff period (<span id="dataClearCutoffLabel">Oct 1–15, 2026</span>). Other months and cutoffs are not affected.</p>
+        <button type="button" class="btn-danger" id="clearCutoffBtn" style="width:100%;">
+          <svg class="svg-icon" viewBox="0 0 24 24" aria-hidden="true">
+            <polyline points="3 6 5 6 21 6"></polyline>
+            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+          </svg>
+          <span>Delete Selected Cutoff Records</span>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- MULTI-SHIFT COMPACTOR MODAL (SECONDARY ACTION) -->
+  <dialog class="app-dialog" id="compactorDialog" closedby="any" aria-labelledby="compactorDialogTitle">
+    <div class="dialog-content">
+      <div class="dialog-header">
+        <h2 class="dialog-title" id="compactorDialogTitle">
+          <svg class="svg-icon" viewBox="0 0 24 24" aria-hidden="true">
+            <polyline points="4 14 10 14 10 20"></polyline>
+            <polyline points="20 10 14 10 14 4"></polyline>
+            <line x1="14" y1="10" x2="21" y2="3"></line>
+            <line x1="3" y1="21" x2="10" y2="14"></line>
+          </svg>
+          <span>Multi-Shift Compactor</span>
+        </h2>
+        <button type="button" class="dialog-close-btn" id="closeCompactorBtn" aria-label="Close compactor">
+          <svg class="svg-icon" viewBox="0 0 24 24" aria-hidden="true">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+
+      <p class="panel-desc">
+        Combine multiple shifts on <strong id="compactorDateText"></strong> into a single continuous interval with the exact same total working minutes. Note: A compacted interval represents equivalent working time and does not preserve the original break periods.
+      </p>
+
+      <div class="form-group">
+        <div class="form-label">Original Shifts</div>
+        <div id="compactorOriginalList" style="background:var(--card-bg-alt); border:1px solid var(--card-border); border-radius:10px; padding:10px; font-size:0.86rem; display:flex; flex-direction:column; gap:6px;"></div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="compactorAnchorInput">Anchor Start Time</label>
+        <input type="time" class="form-input" id="compactorAnchorInput" value="10:00">
+      </div>
+
+      <div class="cutoff-summary-box" style="margin-bottom:12px;">
+        <div class="cutoff-summary-row">
+          <span>Valid Shifts Included</span>
+          <strong id="compactorValidCount">0 shifts</strong>
+        </div>
+        <div class="cutoff-summary-row">
+          <span>Total Working Duration</span>
+          <strong id="compactorTotalDuration">0h 00m</strong>
+        </div>
+        <div class="cutoff-summary-row">
+          <span>Resulting Interval</span>
+          <strong id="compactorResultPreview" style="color:var(--accent-highlight);">--:-- to --:--</strong>
+        </div>
+      </div>
+
+      <div id="compactorValidationWarning" class="validation-msg" style="display:none; margin-bottom:12px;"></div>
+
+      <div style="display:flex; gap:10px;">
+        <button type="button" class="btn-secondary" id="cancelCompactorBtn">Cancel</button>
+        <button type="button" class="btn-primary" id="confirmCompactorBtn">Replace with 1 Shift</button>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- UNDO TOAST -->
+  <div class="toast-bar" id="undoToast" role="status" aria-live="polite">
+    <span id="toastMessage">Change saved</span>
+    <button type="button" class="undo-btn" id="undoActionBtn">Undo</button>
+  </div>
+
+  <!-- FIXED BOTTOM NAVIGATION -->
+  <nav class="bottom-nav" aria-label="Primary Navigation">
+    <div class="bottom-nav-inner">
+      <button type="button" class="nav-tab-btn active" data-tab="home" id="navHomeBtn" aria-current="page">
+        <svg class="svg-icon" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1V9.5z"></path>
+        </svg>
+        <span>Home</span>
+      </button>
+
+      <button type="button" class="nav-tab-btn" data-tab="cutoff" id="navCutoffBtn">
+        <svg class="svg-icon" viewBox="0 0 24 24" aria-hidden="true">
+          <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+          <line x1="16" y1="2" x2="16" y2="6"></line>
+          <line x1="8" y1="2" x2="8" y2="6"></line>
+          <line x1="3" y1="10" x2="21" y2="10"></line>
+        </svg>
+        <span>Cutoff</span>
+      </button>
+
+      <button type="button" class="nav-tab-btn" data-tab="data" id="navDataBtn">
+        <svg class="svg-icon" viewBox="0 0 24 24" aria-hidden="true">
+          <ellipse cx="12" cy="5" rx="9" ry="3"></ellipse>
+          <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"></path>
+          <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path>
+        </svg>
+        <span>Data</span>
+      </button>
+    </div>
+  </nav>
+
+  <script>
+    /**************************************************************
+     * 1. PERSISTENT STORAGE (IndexedDB)
+     * Preserves 'KinsenasStudioDB' ('days' & 'settings' stores)
+     * so existing user records survive upgrades without data loss.
+     **************************************************************/
+    const DB_NAME = 'KinsenasStudioDB';
+    const DB_VERSION = 1;
+    let dbInstance = null;
+
+    function openDatabase() {
+      return new Promise((resolve, reject) => {
+        if (dbInstance) return resolve(dbInstance);
+        if (!('indexedDB' in window)) {
+          return reject(new Error('IndexedDB is not supported in this browser.'));
+        }
+        const req = indexedDB.open(DB_NAME, DB_VERSION);
+        req.onupgradeneeded = (e) => {
+          const db = e.target.result;
+          if (!db.objectStoreNames.contains('days')) {
+            db.createObjectStore('days', { keyPath: 'date' });
+          }
+          if (!db.objectStoreNames.contains('settings')) {
+            db.createObjectStore('settings', { keyPath: 'key' });
+          }
+        };
+        req.onsuccess = (e) => {
+          dbInstance = e.target.result;
+          resolve(dbInstance);
+        };
+        req.onerror = (e) => reject(e.target.error || new Error('Failed to open database.'));
+      });
+    }
+
+    async function dbGetAllDays() {
+      const db = await openDatabase();
+      return new Promise((resolve, reject) => {
+        const tx = db.transaction('days', 'readonly');
+        const req = tx.objectStore('days').getAll();
+        req.onsuccess = () => {
+          const map = {};
+          (req.result || []).forEach((item) => {
+            if (item && typeof item.date === 'string') {
+              const shifts = Array.isArray(item.shifts) ? item.shifts : [];
+              const breakMode = ['default', 'deduct', 'none'].includes(item.breakMode)
+                ? item.breakMode
+                : 'default';
+              if (shifts.length > 0 || breakMode !== 'default') {
+                map[item.date] = {
+                  date: item.date,
+                  shifts,
+                  compacted: Boolean(item.compacted),
+                  breakMode
+                };
+              }
+            }
+          });
+          resolve(map);
+        };
+        req.onerror = () => reject(req.error);
+      });
+    }
+
+    async function dbSaveDay(dayRecord) {
+      setSaveStatus('saving', 'Saving...');
+      try {
+        const db = await openDatabase();
+        await new Promise((resolve, reject) => {
+          const tx = db.transaction('days', 'readwrite');
+          tx.objectStore('days').put(dayRecord);
+          tx.oncomplete = () => resolve();
+          tx.onerror = () => reject(tx.error || new Error('Transaction failed'));
+          tx.onabort = () => reject(tx.error || new Error('Transaction aborted'));
+        });
+        setSaveStatus('saved', 'Saved');
+        return true;
+      } catch (err) {
+        console.error('Database write error:', err);
+        setSaveStatus('error', 'Save failed');
+        return false;
+      }
+    }
+
+    async function dbDeleteDay(dateKey) {
+      setSaveStatus('saving', 'Saving...');
+      try {
+        const db = await openDatabase();
+        await new Promise((resolve, reject) => {
+          const tx = db.transaction('days', 'readwrite');
+          tx.objectStore('days').delete(dateKey);
+          tx.oncomplete = () => resolve();
+          tx.onerror = () => reject(tx.error || new Error('Delete failed'));
+          tx.onabort = () => reject(tx.error || new Error('Delete aborted'));
+        });
+        setSaveStatus('saved', 'Saved');
+        return true;
+      } catch (err) {
+        console.error('Database delete error:', err);
+        setSaveStatus('error', 'Save failed');
+        return false;
+      }
+    }
+
+    async function dbReplaceDaysAtomic(newDaysMap, newSettingsObj, newCutoffSettingsMap) {
+      setSaveStatus('saving', 'Saving...');
+      try {
+        const db = await openDatabase();
+        await new Promise((resolve, reject) => {
+          const needSettingsStore = Boolean(newSettingsObj || newCutoffSettingsMap);
+          const storeNames = needSettingsStore ? ['days', 'settings'] : ['days'];
+          const tx = db.transaction(storeNames, 'readwrite');
+          const daysStore = tx.objectStore('days');
+          daysStore.clear();
+          Object.values(newDaysMap).forEach((rec) => {
+            daysStore.put(rec);
+          });
+          if (needSettingsStore) {
+            const settingsStore = tx.objectStore('settings');
+            if (newSettingsObj) {
+              settingsStore.put({ key: 'config', value: newSettingsObj });
+            }
+            if (newCutoffSettingsMap) {
+              settingsStore.put({ key: 'cutoffSettingsMap', value: newCutoffSettingsMap });
+            }
+          }
+          tx.oncomplete = () => resolve();
+          tx.onerror = () => reject(tx.error || new Error('Batch transaction failed'));
+          tx.onabort = () => reject(tx.error || new Error('Batch transaction aborted'));
+        });
+        setSaveStatus('saved', 'Saved');
+        return true;
+      } catch (err) {
+        console.error('Atomic replace failed:', err);
+        setSaveStatus('error', 'Save failed');
+        return false;
+      }
+    }
+
+    async function dbGetKey(keyName) {
+      const db = await openDatabase();
+      return new Promise((resolve, reject) => {
+        const tx = db.transaction('settings', 'readonly');
+        const req = tx.objectStore('settings').get(keyName);
+        req.onsuccess = () => resolve(req.result ? req.result.value : null);
+        req.onerror = () => reject(req.error);
+      });
+    }
+
+    async function dbSaveKey(keyName, valueObj, silent = false) {
+      if (!silent) setSaveStatus('saving', 'Saving...');
+      try {
+        const db = await openDatabase();
+        await new Promise((resolve, reject) => {
+          const tx = db.transaction('settings', 'readwrite');
+          tx.objectStore('settings').put({ key: keyName, value: valueObj });
+          tx.oncomplete = () => resolve();
+          tx.onerror = () => reject(tx.error);
+          tx.onabort = () => reject(tx.error);
+        });
+        if (!silent) setSaveStatus('saved', 'Saved');
+        return true;
+      } catch (err) {
+        console.error('Failed saving setting key:', keyName, err);
+        if (!silent) setSaveStatus('error', 'Save failed');
+        return false;
+      }
+    }
+
+    function setSaveStatus(mode, text) {
+      const badge = document.getElementById('saveStatusBadge');
+      const label = document.getElementById('saveIndicatorText');
+      badge.classList.remove('saving', 'error');
+      if (mode === 'saving') badge.classList.add('saving');
+      if (mode === 'error') badge.classList.add('error');
+      label.textContent = text;
+    }
+
+    /**************************************************************
+     * 2. APPLICATION STATE & CUTOFF IDENTIFIERS
+     **************************************************************/
+    const STANDARD_BREAK_MINUTES = 60;
+    const nowInit = new Date();
+    const state = {
+      activeTab: 'home',
+      year: nowInit.getFullYear(),
+      month: nowInit.getMonth(), // 0-indexed (0 = Jan, 9 = Oct)
+      cutoff: nowInit.getDate() <= 15 ? 1 : 2,
+      expandedDate: null,
+      daysMap: {},
+      cutoffSettingsMap: {}, // keyed by 'YYYY-MM-1' or 'YYYY-MM-2'
+      settings: {
+        rateType: 'hourly',
+        pesoRate: 0,
+        standardHours: 8,
+        allowance: 0,
+        theme: 'forest'
+      },
+      undoSnapshot: null,
+      compactorDate: null
+    };
+
+    const MONTH_NAMES = [
+      'January', 'February', 'March', 'April', 'May', 'June',
+      'July', 'August', 'September', 'October', 'November', 'December'
+    ];
+    const MONTH_SHORT = [
+      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+    ];
+
+    function pad2(n) {
+      return String(n).padStart(2, '0');
+    }
+
+    function formatDateKey(year, month0, day) {
+      return `${year}-${pad2(month0 + 1)}-${pad2(day)}`;
+    }
+
+    function formatCutoffKey(year = state.year, month0 = state.month, cutoff = state.cutoff) {
+      return `${year}-${pad2(month0 + 1)}-${cutoff === 2 ? 2 : 1}`;
+    }
+
+    function getCutoffKeyFromDateKey(dateKey) {
+      if (typeof dateKey !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(dateKey)) {
+        return formatCutoffKey();
+      }
+      const [y, m, d] = dateKey.split('-').map(Number);
+      const cutoffNum = d <= 15 ? 1 : 2;
+      return `${y}-${pad2(m)}-${cutoffNum}`;
+    }
+
+    function getCutoffSetting(cutoffKey = formatCutoffKey()) {
+      const stored = state.cutoffSettingsMap[cutoffKey];
+      if (stored && typeof stored === 'object' && typeof stored.deductBreakByDefault === 'boolean') {
+        return {
+          cutoffKey,
+          deductBreakByDefault: stored.deductBreakByDefault,
+          breakMinutes: STANDARD_BREAK_MINUTES
+        };
+      }
+      // Newly initialized or legacy cutoffs without a stored setting default to enabled (60 mins)
+      return {
+        cutoffKey,
+        deductBreakByDefault: true,
+        breakMinutes: STANDARD_BREAK_MINUTES
+      };
+    }
+
+    function normalizeBreakMode(mode) {
+      return ['default', 'deduct', 'none'].includes(mode) ? mode : 'default';
+    }
+
+    function formatBreakModeLabel(mode, cutoffDeductEnabled) {
+      const norm = normalizeBreakMode(mode);
+      if (norm === 'deduct') return 'Deduct 1 hour (−1h 00m)';
+      if (norm === 'none') return 'No deduction (0h 00m)';
+      return cutoffDeductEnabled ? 'Default (Follows cutoff: −1h 00m)' : 'Default (Follows cutoff: 0h 00m)';
+    }
+
+    function getTodayDateKey() {
+      const now = new Date();
+      return formatDateKey(now.getFullYear(), now.getMonth(), now.getDate());
+    }
+
+    function getDaysInMonth(year, month0) {
+      return new Date(year, month0 + 1, 0).getDate();
+    }
+
+    function getCutoffDates(year = state.year, month0 = state.month, cutoff = state.cutoff) {
+      const startDay = cutoff === 1 ? 1 : 16;
+      const lastDay = getDaysInMonth(year, month0);
+      const endDay = cutoff === 1 ? 15 : lastDay;
+      const dates = [];
+      for (let d = startDay; d <= endDay; d++) {
+        dates.push(formatDateKey(year, month0, d));
+      }
+      return { dates, startDay, endDay, lastDay };
+    }
+
+    /**************************************************************
+     * 3. TIME & BREAK CALCULATIONS (Integer Minute Arithmetic)
+     * Dedicated functions for shift duration, raw day duration,
+     * effective break deduction, net day duration, and cutoff totals.
+     **************************************************************/
+    function parseTimeMinutes(timeStr) {
+      if (typeof timeStr !== 'string' || !/^\d{2}:\d{2}$/.test(timeStr)) return null;
+      const [h, m] = timeStr.split(':').map(Number);
+      if (isNaN(h) || isNaN(m) || h < 0 || h > 23 || m < 0 || m > 59) return null;
+      return h * 60 + m;
+    }
+
+    function minutesTo24h(totalMins) {
+      if (totalMins === null || isNaN(totalMins) || totalMins < 0 || totalMins >= 1440) return null;
+      const h = Math.floor(totalMins / 60);
+      const m = totalMins % 60;
+      return `${pad2(h)}:${pad2(m)}`;
+    }
+
+    // 3A. Calculate the duration of an individual shift (no overnight rollover)
+    function evaluateShift(shift) {
+      if (!shift || (!shift.in && !shift.out)) {
+        return { valid: false, status: 'empty', minutes: 0, message: 'Enter both Time In and Time Out.' };
+      }
+      if (!shift.in || !shift.out) {
+        return { valid: false, status: 'incomplete', minutes: 0, message: 'Incomplete shift: both Time In and Time Out are required.' };
+      }
+      const inMins = parseTimeMinutes(shift.in);
+      const outMins = parseTimeMinutes(shift.out);
+      if (inMins === null || outMins === null) {
+        return { valid: false, status: 'malformed', minutes: 0, message: 'Invalid time format.' };
+      }
+      if (outMins <= inMins) {
+        return {
+          valid: false,
+          status: 'range_error',
+          minutes: 0,
+          message: 'Time Out must be later than Time In on the same day.'
+        };
+      }
+      return {
+        valid: true,
+        status: 'valid',
+        minutes: outMins - inMins,
+        inMins,
+        outMins,
+        message: ''
+      };
+    }
+
+    // 3B. Calculate the raw duration of all valid shifts on a day
+    function calcDayRawDuration(shifts) {
+      if (!Array.isArray(shifts) || shifts.length === 0) {
+        return { rawMinutes: 0, validShiftsCount: 0, invalidShiftsCount: 0 };
+      }
+      let rawMinutes = 0;
+      let validShiftsCount = 0;
+      let invalidShiftsCount = 0;
+      shifts.forEach((sh) => {
+        const res = evaluateShift(sh);
+        if (res.valid) {
+          rawMinutes += res.minutes;
+          validShiftsCount += 1;
+        } else {
+          invalidShiftsCount += 1;
+        }
+      });
+      return { rawMinutes, validShiftsCount, invalidShiftsCount };
+    }
+
+    // 3C. Resolve the effective break deduction from cutoff default, day override, and raw duration
+    function resolveEffectiveBreakMinutes(rawMinutes, dayBreakMode, cutoffSetting) {
+      const mode = normalizeBreakMode(dayBreakMode);
+      const cutoffDeduct = cutoffSetting ? Boolean(cutoffSetting.deductBreakByDefault) : true;
+      const breakAmount = cutoffSetting && typeof cutoffSetting.breakMinutes === 'number'
+        ? cutoffSetting.breakMinutes
+        : STANDARD_BREAK_MINUTES;
+
+      let requestedDeduction = 0;
+      if (mode === 'deduct') {
+        requestedDeduction = breakAmount;
+      } else if (mode === 'none') {
+        requestedDeduction = 0;
+      } else {
+        requestedDeduction = cutoffDeduct ? breakAmount : 0;
+      }
+
+      const safeRaw = Math.max(0, Math.round(Number(rawMinutes) || 0));
+      const effectiveBreakMinutes = Math.min(requestedDeduction, safeRaw);
+
+      return {
+        mode,
+        requestedDeduction,
+        effectiveBreakMinutes
+      };
+    }
+
+    // 3D. Calculate net working duration for a day
+    function calcDayNetDuration(rawMinutes, effectiveBreakMinutes) {
+      const safeRaw = Math.max(0, Math.round(Number(rawMinutes) || 0));
+      const safeBreak = Math.max(0, Math.round(Number(effectiveBreakMinutes) || 0));
+      return Math.max(0, safeRaw - safeBreak);
+    }
+
+    // Combined day evaluation helper returning raw, break deduction, and net working minutes
+    function evaluateDay(dayRecordOrShifts, dateKeyOverride) {
+      const isRecordObj = dayRecordOrShifts && !Array.isArray(dayRecordOrShifts) && typeof dayRecordOrShifts === 'object';
+      const shifts = isRecordObj
+        ? (Array.isArray(dayRecordOrShifts.shifts) ? dayRecordOrShifts.shifts : [])
+        : (Array.isArray(dayRecordOrShifts) ? dayRecordOrShifts : []);
+      const breakMode = isRecordObj ? normalizeBreakMode(dayRecordOrShifts.breakMode) : 'default';
+      const dateKey = dateKeyOverride || (isRecordObj && dayRecordOrShifts.date) || null;
+      const cutoffKey = dateKey ? getCutoffKeyFromDateKey(dateKey) : formatCutoffKey();
+      const cutoffSetting = getCutoffSetting(cutoffKey);
+
+      const { rawMinutes, validShiftsCount, invalidShiftsCount } = calcDayRawDuration(shifts);
+      const { requestedDeduction, effectiveBreakMinutes } = resolveEffectiveBreakMinutes(rawMinutes, breakMode, cutoffSetting);
+      const netMinutes = calcDayNetDuration(rawMinutes, effectiveBreakMinutes);
+
+      return {
+        rawMinutes,
+        requestedDeduction,
+        breakDeductionMinutes: effectiveBreakMinutes,
+        netMinutes,
+         totalMinutes: netMinutes, // alias for net working duration
+        breakMode,
+        cutoffDeductByDefault: cutoffSetting.deductBreakByDefault,
+        validShiftsCount,
+        invalidShiftsCount
+      };
+    }
+
+    function formatMinutesHM(totalMinutes) {
+      const mins = Math.max(0, Math.round(Number(totalMinutes) || 0));
+      const h = Math.floor(mins / 60);
+      const m = mins % 60;
+      return `${h}h ${pad2(m)}m`;
+    }
+
+    function formatBreakDeductionHM(deductionMinutes) {
+      const mins = Math.max(0, Math.round(Number(deductionMinutes) || 0));
+      if (mins === 0) return '0h 00m';
+      return `−${formatMinutesHM(mins)}`;
+    }
+
+    function format12Hour(time24) {
+      const mins = parseTimeMinutes(time24);
+      if (mins === null) return '--:--';
+      let h = Math.floor(mins / 60);
+      const m = mins % 60;
+      const suffix = h >= 12 ? 'PM' : 'AM';
+      h = h % 12 || 12;
+      return `${h}:${pad2(m)} ${suffix}`;
+    }
+
+    function suggestNextShiftInterval(existingShifts) {
+      // Typical working hours: 10:00 AM to 10:00 PM
+      if (!Array.isArray(existingShifts) || existingShifts.length === 0) {
+        return { in: '10:00', out: '19:00' };
+      }
+      const lastShift = existingShifts[existingShifts.length - 1];
+      const lastOutMins = parseTimeMinutes(lastShift && lastShift.out);
+      if (lastOutMins !== null && lastOutMins + 60 < 21 * 60) {
+        const nextIn = lastOutMins + 60;
+        const nextOut = Math.min(22 * 60, nextIn + 240);
+        if (nextOut > nextIn) {
+          return { in: minutesTo24h(nextIn), out: minutesTo24h(nextOut) };
+        }
+      }
+      return { in: '14:00', out: '18:00' };
+    }
+
+    /**************************************************************
+     * 4. EARNINGS & CUTOFF SUMMARY CALCULATIONS (Net Minutes)
+     **************************************************************/
+    function isRateConfigured() {
+      return (Number(state.settings.pesoRate) || 0) > 0;
+    }
+
+    function formatPeso(amount) {
+      return '₱' + Number(amount || 0).toLocaleString('en-PH', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      });
+    }
+
+    function calcDayEstimatedEarnings(netMinutes) {
+      if (netMinutes <= 0 || !isRateConfigured()) return 0;
+      const rate = Number(state.settings.pesoRate) || 0;
+      if (state.settings.rateType === 'hourly') {
+        return (netMinutes / 60) * rate;
+      }
+      const stdHours = Math.max(1, Number(state.settings.standardHours) || 8);
+      return (netMinutes / (stdHours * 60)) * rate;
+    }
+
+    // 3E. Calculate cutoff totals from the net working durations
+    function computeCutoffSummary() {
+      const { dates, startDay, endDay, lastDay } = getCutoffDates();
+      const cutoffKey = formatCutoffKey();
+      const cutoffSetting = getCutoffSetting(cutoffKey);
+
+      let totalRawMinutes = 0;
+      let totalBreakMinutes = 0;
+      let totalNetMinutes = 0;
+      let workdays = 0;
+
+      dates.forEach((dateKey) => {
+        const rec = state.daysMap[dateKey];
+        if (rec && Array.isArray(rec.shifts) && rec.shifts.length > 0) {
+          const dayEval = evaluateDay(rec, dateKey);
+          totalRawMinutes += dayEval.rawMinutes;
+          totalBreakMinutes += dayEval.breakDeductionMinutes;
+          if (dayEval.netMinutes > 0) {
+            totalNetMinutes += dayEval.netMinutes;
+            workdays += 1;
+          }
+        }
+      });
+
+      const baseEarnings = calcDayEstimatedEarnings(totalNetMinutes);
+      const allowance = Number(state.settings.allowance) || 0;
+      const showEarnings = isRateConfigured() || allowance > 0;
+      // Fixed cutoff allowance added only once per cutoff
+      const estimatedEarnings = workdays > 0 ? baseEarnings + allowance : (allowance > 0 ? allowance : 0);
+
+      return {
+        cutoffKey,
+        cutoffSetting,
+        dates,
+        startDay,
+        endDay,
+        lastDay,
+        totalRawMinutes,
+        totalBreakMinutes,
+        totalNetMinutes,
+        totalMinutes: totalNetMinutes,
+        workdays,
+        showEarnings,
+        estimatedEarnings
+      };
+    }
+
+    /**************************************************************
+     * 5. UNDO RECOVERY MECHANISM
+     **************************************************************/
+    let toastTimer = null;
+
+    function pushUndoSnapshot(message) {
+      state.undoSnapshot = {
+        daysMap: JSON.parse(JSON.stringify(state.daysMap)),
+        cutoffSettingsMap: JSON.parse(JSON.stringify(state.cutoffSettingsMap))
+      };
+      const toast = document.getElementById('undoToast');
+      document.getElementById('toastMessage').textContent = message;
+      toast.classList.add('show');
+      if (toastTimer) clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => {
+        toast.classList.remove('show');
+      }, 6500);
+    }
+
+    document.getElementById('undoActionBtn').addEventListener('click', async () => {
+      if (!state.undoSnapshot) return;
+      const { daysMap: daysToRestore, cutoffSettingsMap: cutoffsToRestore } = state.undoSnapshot;
+      const ok = await dbReplaceDaysAtomic(daysToRestore, null, cutoffsToRestore || null);
+      if (ok) {
+        state.daysMap = daysToRestore;
+        if (cutoffsToRestore) state.cutoffSettingsMap = cutoffsToRestore;
+        state.undoSnapshot = null;
+        document.getElementById('undoToast').classList.remove('show');
+        renderAll();
+      }
+    });
+
+    /**************************************************************
+     * 6. RENDERING
+     **************************************************************/
+    function applyThemeUI(themeName) {
+      const theme = themeName === 'mint' ? 'mint' : 'forest';
+      state.settings.theme = theme;
+      document.documentElement.setAttribute('data-theme', theme);
+      const metaTheme = document.getElementById('metaThemeColor');
+      if (metaTheme) {
+        metaTheme.setAttribute('content', theme === 'mint' ? '#f0f4ef' : '#0f1215');
+      }
+
+      const iconEl = document.getElementById('headerThemeIcon');
+      if (theme === 'forest') {
+        iconEl.innerHTML = '<circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>';
+      } else {
+        iconEl.innerHTML = '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>';
+      }
+
+      document.getElementById('themeForestBtn').classList.toggle('active', theme === 'forest');
+      document.getElementById('themeMintBtn').classList.toggle('active', theme === 'mint');
+    }
+
+    function renderAll() {
+      const summary = computeCutoffSummary();
+      renderHomeTab(summary);
+      renderCutoffTab(summary);
+      renderDataTabLabels(summary);
+    }
+
+    function renderHomeTab(summary) {
+      const { dates, startDay, endDay, totalMinutes, workdays, showEarnings, estimatedEarnings, cutoffSetting } = summary;
+      const monthShort = MONTH_SHORT[state.month];
+      const cutoffOrd = state.cutoff === 1 ? '1st' : '2nd';
+      const cutoffDeductEnabled = cutoffSetting.deductBreakByDefault;
+
+      document.getElementById('homePeriodTitle').textContent =
+        `${monthShort} ${state.year} · ${cutoffOrd} Kinsenas (${startDay}–${endDay})`;
+      document.getElementById('homeTotalHours').textContent = formatMinutesHM(totalMinutes);
+      document.getElementById('homeWorkdays').textContent = `${workdays} ${workdays === 1 ? 'day' : 'days'}`;
+
+      const statsGrid = document.getElementById('homeStatsGrid');
+      const earningsCol = document.getElementById('homeEarningsCol');
+      if (showEarnings) {
+        statsGrid.classList.remove('two-cols');
+        earningsCol.style.display = 'block';
+        document.getElementById('homeEstEarnings').textContent = formatPeso(estimatedEarnings);
+      } else {
+        statsGrid.classList.add('two-cols');
+        earningsCol.style.display = 'none';
+      }
+
+      const container = document.getElementById('daysContainer');
+      container.innerHTML = '';
+      const todayKey = getTodayDateKey();
+
+      dates.forEach((dateKey) => {
+        const [y, m, d] = dateKey.split('-').map(Number);
+        const dateObj = new Date(y, m - 1, d);
+        const weekdayShort = dateObj.toLocaleDateString('en-US', { weekday: 'short' });
+        const formattedTitle = `${weekdayShort}, ${MONTH_SHORT[m - 1]} ${d}`;
+
+        const rec = state.daysMap[dateKey];
+        const shifts = rec && Array.isArray(rec.shifts) ? rec.shifts : [];
+        const dayEval = evaluateDay(rec || { date: dateKey, shifts: [], breakMode: 'default' }, dateKey);
+        const breakMode = dayEval.breakMode;
+        const isExpanded = state.expandedDate === dateKey;
+        const isToday = dateKey === todayKey;
+        const dayEarnings = calcDayEstimatedEarnings(dayEval.netMinutes);
+
+        const card = document.createElement('article');
+        card.className = `day-card${isExpanded ? ' expanded' : ''}${isToday ? ' today-highlight' : ''}`;
+        card.id = `card-${dateKey}`;
+
+        let subtitleText = 'No shifts recorded';
+        if (shifts.length > 0) {
+          if (dayEval.rawMinutes > 0) {
+            if (shifts.length === 1) {
+              subtitleText = `${format12Hour(shifts[0].in)} – ${format12Hour(shifts[0].out)}`;
+            } else {
+              subtitleText = `${shifts.length} shifts recorded`;
+            }
+          } else {
+            subtitleText = 'Incomplete or invalid shift time';
+          }
+        } else if (breakMode !== 'default') {
+          subtitleText = breakMode === 'deduct'
+            ? 'No shifts · Break override: Deduct 1h'
+            : 'No shifts · Break override: No deduction';
+        }
+
+        const hasRecords = shifts.length > 0;
+        const defaultBtnLabel = cutoffDeductEnabled ? 'Default (−1h)' : 'Default (0h)';
+
+        card.innerHTML = `
+          <div class="day-header" role="button" tabindex="0" aria-expanded="${isExpanded}" data-action="toggle-day" data-date="${dateKey}">
+            <div class="day-header-left">
+              <div class="day-title-row">
+                <span class="day-title">${formattedTitle}</span>
+                ${isToday ? '<span class="badge badge-today">Today</span>' : ''}
+                ${rec && rec.compacted ? '<span class="badge badge-compacted">Compacted</span>' : ''}
+                ${dayEval.invalidShiftsCount > 0 ? '<span class="badge badge-invalid">Invalid Time</span>' : ''}
+              </div>
+              <div class="day-subtitle">${subtitleText}</div>
+            </div>
+            <div class="day-header-right">
+              ${hasRecords ? `
+                <div class="day-metrics">
+                  <div class="day-hours-pill">${formatMinutesHM(dayEval.netMinutes)}</div>
+                  ${dayEarnings > 0 ? `<span class="day-earnings-preview">${formatPeso(dayEarnings)}</span>` : ''}
+                </div>
+              ` : `
+                <button type="button" class="quick-add-btn" data-action="quick-add-shift" data-date="${dateKey}" aria-label="Add shift for ${formattedTitle}">
+                  <svg class="svg-icon" viewBox="0 0 24 24" aria-hidden="true" style="width:14px;height:14px;">
+                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                  </svg>
+                  <span>Add Shift</span>
+                </button>
+              `}
+              <svg class="chevron-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true">
+                <polyline points="6 9 12 15 18 9"></polyline>
+              </svg>
+            </div>
+          </div>
+          <div class="day-body">
+            <div class="shift-list"></div>
+
+            <!-- Per-Day Break Deduction Control & Duration Feedback -->
+            <div class="day-break-box" role="region" aria-label="Break deduction and daily duration breakdown for ${formattedTitle}">
+              <div class="day-break-header">
+                <span class="day-break-title">
+                  <svg class="svg-icon" viewBox="0 0 24 24" aria-hidden="true" style="width:14px;height:14px;">
+                    <path d="M18 8h1a4 4 0 0 1 0 8h-1"></path>
+                    <path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"></path>
+                  </svg>
+                  <span>Break Deduction</span>
+                </span>
+                <span class="day-break-mode-tag">${formatBreakModeLabel(breakMode, cutoffDeductEnabled)}</span>
+              </div>
+
+              <div class="break-segmented" role="group" aria-label="Break deduction mode for ${formattedTitle}">
+                <button type="button" class="break-seg-btn ${breakMode === 'default' ? 'active' : ''}" aria-pressed="${breakMode === 'default'}" data-action="set-break-mode" data-date="${dateKey}" data-mode="default">
+                  ${defaultBtnLabel}
+                </button>
+                <button type="button" class="break-seg-btn ${breakMode === 'deduct' ? 'active' : ''}" aria-pressed="${breakMode === 'deduct'}" data-action="set-break-mode" data-date="${dateKey}" data-mode="deduct">
+                  Deduct 1 hour
+                </button>
+                <button type="button" class="break-seg-btn ${breakMode === 'none' ? 'active' : ''}" aria-pressed="${breakMode === 'none'}" data-action="set-break-mode" data-date="${dateKey}" data-mode="none">
+                  No deduction
+                </button>
+              </div>
+
+              <div class="day-duration-summary">
+                <div class="day-dur-row">
+                  <span>Raw working duration:</span>
+                  <strong>${formatMinutesHM(dayEval.rawMinutes)}</strong>
+                </div>
+                <div class="day-dur-row">
+                  <span>Break deduction:</span>
+                  <strong>${formatBreakDeductionHM(dayEval.breakDeductionMinutes)}</strong>
+                </div>
+                <div class="day-dur-row net-row">
+                  <span>Net working duration:</span>
+                  <strong>${formatMinutesHM(dayEval.netMinutes)}</strong>
+                </div>
+              </div>
+            </div>
+
+            <div class="day-actions-row">
+              <button type="button" class="btn-secondary" data-action="add-shift" data-date="${dateKey}">
+                <svg class="svg-icon" viewBox="0 0 24 24" aria-hidden="true">
+                  <line x1="12" y1="5" x2="12" y2="19"></line>
+                  <line x1="5" y1="12" x2="19" y2="12"></line>
+                </svg>
+                <span>Add Shift</span>
+              </button>
+            </div>
+            ${shifts.length > 1 ? `
+              <button type="button" class="compactor-trigger-btn" data-action="open-compactor" data-date="${dateKey}">
+                <svg class="svg-icon" viewBox="0 0 24 24" aria-hidden="true" style="width:15px;height:15px;">
+                  <polyline points="4 14 10 14 10 20"></polyline>
+                  <polyline points="20 10 14 10 14 4"></polyline>
+                  <line x1="14" y1="10" x2="21" y2="3"></line>
+                  <line x1="3" y1="21" x2="10" y2="14"></line>
+                </svg>
+                <span>Compact ${shifts.length} shifts into 1 equivalent interval</span>
+              </button>
+            ` : ''}
+          </div>
+        `;
+
+        const shiftListEl = card.querySelector('.shift-list');
+        if (shifts.length === 0) {
+          shiftListEl.innerHTML = `
+            <p style="padding: 12px 0 4px; font-size: 0.84rem; color: var(--card-muted);">
+              No shifts recorded for this day yet. Tap <strong>Add Shift</strong> below to log your Time In and Time Out.
+            </p>
+          `;
+        } else {
+          shifts.forEach((sh, idx) => {
+            const evalRes = evaluateShift(sh);
+            const item = document.createElement('div');
+            item.className = 'shift-item';
+            const inId = `in-${dateKey}-${idx}`;
+            const outId = `out-${dateKey}-${idx}`;
+
+            item.innerHTML = `
+              <div class="shift-top-bar">
+                <span class="shift-label">Shift ${idx + 1}</span>
+                <div class="shift-top-right">
+                  <span class="shift-duration ${evalRes.valid ? '' : 'invalid'}" data-role="shift-duration">
+                    ${evalRes.valid ? formatMinutesHM(evalRes.minutes) : 'Invalid'}
+                  </span>
+                  <button type="button" class="remove-shift-btn" data-action="remove-shift" data-date="${dateKey}" data-idx="${idx}" aria-label="Remove Shift ${idx + 1} on ${formattedTitle}">
+                    <svg class="svg-icon" viewBox="0 0 24 24" aria-hidden="true" style="width:14px;height:14px;">
+                      <polyline points="3 6 5 6 21 6"></polyline>
+                      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"></path>
+                    </svg>
+                    <span>Remove</span>
+                  </button>
+                </div>
+              </div>
+              <div class="time-inputs-grid">
+                <div class="time-field">
+                  <label for="${inId}">Time In</label>
+                  <input type="time" id="${inId}" value="${sh.in || ''}" class="${evalRes.valid ? '' : 'invalid-input'}" data-date="${dateKey}" data-idx="${idx}" data-field="in">
+                </div>
+                <div class="time-field">
+                  <label for="${outId}">Time Out</label>
+                  <input type="time" id="${outId}" value="${sh.out || ''}" class="${evalRes.valid ? '' : 'invalid-input'}" data-date="${dateKey}" data-idx="${idx}" data-field="out">
+                </div>
+              </div>
+              <div class="validation-msg" data-role="shift-error" style="${evalRes.valid ? 'display:none;' : 'display:flex;'}">
+                <svg class="svg-icon" viewBox="0 0 24 24" aria-hidden="true" style="width:16px;height:16px;">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <line x1="12" y1="8" x2="12" y2="12"></line>
+                  <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                </svg>
+                <span data-role="shift-error-text">${evalRes.message}</span>
+              </div>
+            `;
+            shiftListEl.appendChild(item);
+          });
+        }
+
+        container.appendChild(card);
+      });
+    }
+
+    function renderCutoffTab(summary) {
+      const { startDay, endDay, lastDay, totalMinutes, workdays, showEarnings, estimatedEarnings, cutoffSetting } = summary;
+      const monthName = MONTH_NAMES[state.month];
+      const monthShort = MONTH_SHORT[state.month];
+      const cutoffOrd = state.cutoff === 1 ? '1st Kinsenas' : '2nd Kinsenas';
+
+      document.getElementById('cutoffMonthLabel').textContent = `${monthName} ${state.year}`;
+      document.getElementById('cutoffDaysCountLabel').textContent = `${lastDay} days in month`;
+      document.getElementById('directMonthInput').value = `${state.year}-${pad2(state.month + 1)}`;
+      document.getElementById('cutoff2RangeText').textContent = `Days 16 – ${lastDay}`;
+
+      document.getElementById('selectCutoff1Btn').classList.toggle('selected', state.cutoff === 1);
+      document.getElementById('selectCutoff2Btn').classList.toggle('selected', state.cutoff === 2);
+      document.getElementById('selectCutoff1Btn').setAttribute('aria-pressed', state.cutoff === 1);
+      document.getElementById('selectCutoff2Btn').setAttribute('aria-pressed', state.cutoff === 2);
+
+      const periodDisplay = `${monthShort} ${startDay} – ${monthShort} ${endDay}, ${state.year}`;
+      document.getElementById('cutoffSummaryPeriod').textContent = periodDisplay;
+      document.getElementById('cutoffSummaryHours').textContent = formatMinutesHM(totalMinutes);
+      document.getElementById('cutoffSummaryDays').textContent = `${workdays} ${workdays === 1 ? 'day' : 'days'}`;
+
+      const earningsRow = document.getElementById('cutoffSummaryEarningsRow');
+      if (showEarnings) {
+        earningsRow.style.display = 'flex';
+        document.getElementById('cutoffSummaryEarnings').textContent = formatPeso(estimatedEarnings);
+      } else {
+        earningsRow.style.display = 'none';
+      }
+
+      // Render Cutoff-Wide Break Deduction Default controls
+      const isBreakEnabled = cutoffSetting.deductBreakByDefault;
+      const toggleBtn = document.getElementById('toggleCutoffBreakBtn');
+      const toggleLabel = document.getElementById('toggleCutoffBreakLabel');
+      const statusText = document.getElementById('cutoffBreakStatusText');
+      const periodSpan = document.getElementById('cutoffBreakPeriodLabel');
+
+      toggleBtn.setAttribute('aria-pressed', String(isBreakEnabled));
+      toggleLabel.textContent = isBreakEnabled ? 'Enabled (−1h)' : 'Disabled (0h)';
+      statusText.textContent = isBreakEnabled
+        ? `Default for ${monthShort} ${state.year} (${cutoffOrd}): Deduct 1 hour (60m)`
+        : `Default for ${monthShort} ${state.year} (${cutoffOrd}): No deduction (0m)`;
+      periodSpan.textContent = `${monthShort} ${startDay}–${endDay}, ${state.year}`;
+    }
+
+    function renderDataTabLabels(summary) {
+      const { startDay, endDay } = summary;
+      const monthShort = MONTH_SHORT[state.month];
+      document.getElementById('dataClearCutoffLabel').textContent =
+        `${monthShort} ${startDay}–${endDay}, ${state.year}`;
+    }
+
+    function populateSettingsForm() {
+      document.getElementById('rateTypeInput').value = state.settings.rateType || 'hourly';
+      document.getElementById('pesoRateInput').value =
+        state.settings.pesoRate > 0 ? state.settings.pesoRate : '';
+      document.getElementById('standardHoursInput').value = state.settings.standardHours || 8;
+      document.getElementById('allowanceInput').value =
+        state.settings.allowance > 0 ? state.settings.allowance : '';
+      document.getElementById('hoursPerDayGroup').style.display =
+        state.settings.rateType === 'daily' ? 'block' : 'none';
+    }
+
+    /**************************************************************
+     * 7. NAVIGATION (Fixed Bottom Bar: Home, Cutoff, Data)
+     **************************************************************/
+    function switchTab(tabName) {
+      state.activeTab = tabName;
+      document.getElementById('viewHome').classList.toggle('active', tabName === 'home');
+      document.getElementById('viewCutoff').classList.toggle('active', tabName === 'cutoff');
+      document.getElementById('viewData').classList.toggle('active', tabName === 'data');
+
+      document.querySelectorAll('.nav-tab-btn').forEach((btn) => {
+        const isCurrent = btn.dataset.tab === tabName;
+        btn.classList.toggle('active', isCurrent);
+        if (isCurrent) {
+          btn.setAttribute('aria-current', 'page');
+        } else {
+          btn.removeAttribute('aria-current');
+        }
+      });
+
+      if (tabName === 'data') {
+        populateSettingsForm();
+      }
+      window.scrollTo({ top: 0, behavior: 'instant' });
+    }
+
+    document.querySelectorAll('.nav-tab-btn').forEach((btn) => {
+      btn.addEventListener('click', () => switchTab(btn.dataset.tab));
+    });
+
+    document.getElementById('homeSwitchPeriodBtn').addEventListener('click', () => {
+      switchTab('cutoff');
+    });
+
+    document.getElementById('viewCutoffInHomeBtn').addEventListener('click', () => {
+      switchTab('home');
+    });
+
+    async function persistSelectedPeriod() {
+      await dbSaveKey('selectedPeriod', {
+        year: state.year,
+        month: state.month,
+        cutoff: state.cutoff
+      }, true);
+    }
+
+    /**************************************************************
+     * 8. EVENT HANDLING (Home Daily Cards & Cutoff Navigation)
+     **************************************************************/
+    const daysContainerEl = document.getElementById('daysContainer');
+
+    daysContainerEl.addEventListener('click', async (e) => {
+      const actionBtn = e.target.closest('[data-action]');
+      if (!actionBtn) return;
+      const action = actionBtn.dataset.action;
+      const dateKey = actionBtn.dataset.date;
+
+      if (action === 'quick-add-shift') {
+        e.stopPropagation();
+        await addShiftToDate(dateKey);
+        return;
+      }
+
+      if (action === 'toggle-day') {
+        state.expandedDate = state.expandedDate === dateKey ? null : dateKey;
+        renderAll();
+        return;
+      }
+
+      if (action === 'add-shift') {
+        await addShiftToDate(dateKey);
+        return;
+      }
+
+      if (action === 'set-break-mode') {
+        const mode = normalizeBreakMode(actionBtn.dataset.mode);
+        const existing = state.daysMap[dateKey] || { date: dateKey, shifts: [], compacted: false, breakMode: 'default' };
+        existing.breakMode = mode;
+        if ((!Array.isArray(existing.shifts) || existing.shifts.length === 0) && mode === 'default') {
+          delete state.daysMap[dateKey];
+          await dbDeleteDay(dateKey);
+        } else {
+          state.daysMap[dateKey] = existing;
+          await dbSaveDay(existing);
+        }
+        renderAll();
+        return;
+      }
+
+      if (action === 'remove-shift') {
+        const idx = Number(actionBtn.dataset.idx);
+        const rec = state.daysMap[dateKey];
+        if (!rec || !Array.isArray(rec.shifts)) return;
+        pushUndoSnapshot(`Removed shift on ${dateKey}`);
+        rec.shifts.splice(idx, 1);
+        rec.compacted = false;
+        const currentBreakMode = normalizeBreakMode(rec.breakMode);
+        if (rec.shifts.length === 0 && currentBreakMode === 'default') {
+          delete state.daysMap[dateKey];
+          await dbDeleteDay(dateKey);
+        } else {
+          await dbSaveDay(rec);
+        }
+        renderAll();
+        return;
+      }
+
+      if (action === 'open-compactor') {
+        openCompactorDialog(dateKey);
+      }
+    });
+
+    daysContainerEl.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        const header = e.target.closest('.day-header[data-action="toggle-day"]');
+        if (header && e.target === header) {
+          e.preventDefault();
+          const dateKey = header.dataset.date;
+          state.expandedDate = state.expandedDate === dateKey ? null : dateKey;
+          renderAll();
+        }
+      }
+    });
+
+    async function addShiftToDate(dateKey) {
+      const rec = state.daysMap[dateKey] || { date: dateKey, shifts: [], compacted: false, breakMode: 'default' };
+      rec.breakMode = normalizeBreakMode(rec.breakMode);
+      const nextShift = suggestNextShiftInterval(rec.shifts);
+      rec.shifts.push(nextShift);
+      rec.compacted = false;
+      state.daysMap[dateKey] = rec;
+      state.expandedDate = dateKey;
+      await dbSaveDay(rec);
+      renderAll();
+    }
+
+    // Auto-save on Time In / Time Out edit
+    daysContainerEl.addEventListener('change', async (e) => {
+      const input = e.target.closest('input[type="time"][data-date]');
+      if (!input) return;
+      const dateKey = input.dataset.date;
+      const idx = Number(input.dataset.idx);
+      const field = input.dataset.field;
+
+      const rec = state.daysMap[dateKey];
+      if (!rec || !rec.shifts || !rec.shifts[idx]) return;
+
+      rec.shifts[idx][field] = input.value;
+      rec.compacted = false;
+      rec.breakMode = normalizeBreakMode(rec.breakMode);
+      await dbSaveDay(rec);
+      renderAll();
+    });
+
+    // Cutoff Navigation Controls
+    document.getElementById('prevMonthBtn').addEventListener('click', async () => {
+      state.month -= 1;
+      if (state.month < 0) {
+        state.month = 11;
+        state.year -= 1;
+      }
+      state.expandedDate = null;
+      await persistSelectedPeriod();
+      renderAll();
+    });
+
+    document.getElementById('nextMonthBtn').addEventListener('click', async () => {
+      state.month += 1;
+      if (state.month > 11) {
+        state.month = 0;
+        state.year += 1;
+      }
+      state.expandedDate = null;
+      await persistSelectedPeriod();
+      renderAll();
+    });
+
+    document.getElementById('directMonthInput').addEventListener('change', async (e) => {
+      const val = e.target.value;
+      if (!val || !/^\d{4}-\d{2}$/.test(val)) return;
+      const [y, m] = val.split('-').map(Number);
+      state.year = y;
+      state.month = m - 1;
+      state.expandedDate = null;
+      await persistSelectedPeriod();
+      renderAll();
+    });
+
+    document.getElementById('selectCutoff1Btn').addEventListener('click', async () => {
+      state.cutoff = 1;
+      state.expandedDate = null;
+      await persistSelectedPeriod();
+      renderAll();
+    });
+
+    document.getElementById('selectCutoff2Btn').addEventListener('click', async () => {
+      state.cutoff = 2;
+      state.expandedDate = null;
+      await persistSelectedPeriod();
+      renderAll();
+    });
+
+    document.getElementById('jumpCurrentPeriodBtn').addEventListener('click', async () => {
+      const now = new Date();
+      state.year = now.getFullYear();
+      state.month = now.getMonth();
+      state.cutoff = now.getDate() <= 15 ? 1 : 2;
+      state.expandedDate = getTodayDateKey();
+      await persistSelectedPeriod();
+      renderAll();
+    });
+
+    // Cutoff-Wide Break Deduction Default Toggle
+    document.getElementById('toggleCutoffBreakBtn').addEventListener('click', async () => {
+      const cutoffKey = formatCutoffKey();
+      const current = getCutoffSetting(cutoffKey);
+      const updated = {
+        cutoffKey,
+        deductBreakByDefault: !current.deductBreakByDefault,
+        breakMinutes: STANDARD_BREAK_MINUTES
+      };
+      state.cutoffSettingsMap[cutoffKey] = updated;
+      await dbSaveKey('cutoffSettingsMap', state.cutoffSettingsMap);
+      renderAll();
+    });
+
+    /**************************************************************
+     * 9. MULTI-SHIFT COMPACTOR
+     * Preserves original total raw working minutes; break deduction
+     * remains a separate daily calculation and is not baked in.
+     **************************************************************/
+    const compactorDialog = document.getElementById('compactorDialog');
+
+    // Fallback for browsers without <dialog closedby="any"> support
+    if (compactorDialog && !('closedBy' in HTMLDialogElement.prototype)) {
+      compactorDialog.addEventListener('click', (event) => {
+        if (event.target !== compactorDialog) return;
+        const rect = compactorDialog.getBoundingClientRect();
+        const isDialogContent = (
+          rect.top <= event.clientY &&
+          event.clientY <= rect.top + rect.height &&
+          rect.left <= event.clientX &&
+          event.clientX <= rect.left + rect.width
+        );
+        if (isDialogContent) return;
+        compactorDialog.close();
+      });
+    }
+
+    function openCompactorDialog(dateKey) {
+      const rec = state.daysMap[dateKey];
+      if (!rec || !Array.isArray(rec.shifts) || rec.shifts.length < 2) return;
+      state.compactorDate = dateKey;
+
+      const [y, m, d] = dateKey.split('-').map(Number);
+      document.getElementById('compactorDateText').textContent =
+        `${MONTH_SHORT[m - 1]} ${d}, ${y}`;
+
+      const listEl = document.getElementById('compactorOriginalList');
+      listEl.innerHTML = '';
+
+      let firstValidIn = null;
+      rec.shifts.forEach((sh, i) => {
+        const ev = evaluateShift(sh);
+        if (ev.valid && !firstValidIn) firstValidIn = sh.in;
+        const row = document.createElement('div');
+        row.style.cssText = 'display:flex; justify-content:space-between; align-items:center;';
+        row.innerHTML = `
+          <span>Shift ${i + 1}: ${format12Hour(sh.in)} – ${format12Hour(sh.out)}</span>
+          <strong>${ev.valid ? formatMinutesHM(ev.minutes) : 'Invalid (Ignored)'}</strong>
+        `;
+        listEl.appendChild(row);
+      });
+
+      document.getElementById('compactorAnchorInput').value = firstValidIn || '10:00';
+      updateCompactorPreview();
+      compactorDialog.showModal();
+    }
+
+    function computeCompactedResult() {
+      const rec = state.daysMap[state.compactorDate];
+      if (!rec || !Array.isArray(rec.shifts)) {
+        return { valid: false, error: 'No shifts found.' };
+      }
+      const rawEval = calcDayRawDuration(rec.shifts);
+      if (rawEval.rawMinutes <= 0) {
+        return { valid: false, error: 'Total valid raw working duration must be greater than 0 minutes.' };
+      }
+      const anchorStr = document.getElementById('compactorAnchorInput').value;
+      const anchorMins = parseTimeMinutes(anchorStr);
+      if (anchorMins === null) {
+        return { valid: false, error: 'Please select a valid anchor start time.' };
+      }
+      const endMins = anchorMins + rawEval.rawMinutes;
+      if (endMins >= 1440) {
+        return {
+          valid: false,
+          rawEval,
+          error: 'Compacted end time exceeds 11:59 PM on the same day. Choose an earlier anchor start time.'
+        };
+      }
+      const endStr = minutesTo24h(endMins);
+      return {
+        valid: true,
+        rawEval,
+        anchorStr,
+        endStr
+      };
+    }
+
+    function updateCompactorPreview() {
+      const res = computeCompactedResult();
+      const warningEl = document.getElementById('compactorValidationWarning');
+      const confirmBtn = document.getElementById('confirmCompactorBtn');
+
+      if (res.rawEval) {
+        document.getElementById('compactorValidCount').textContent =
+          `${res.rawEval.validShiftsCount} of ${(state.daysMap[state.compactorDate]?.shifts || []).length} shifts`;
+        document.getElementById('compactorTotalDuration').textContent =
+          formatMinutesHM(res.rawEval.rawMinutes);
+      }
+
+      if (!res.valid) {
+        document.getElementById('compactorResultPreview').textContent = '--:-- to --:--';
+        warningEl.style.display = 'flex';
+        warningEl.textContent = res.error;
+        confirmBtn.disabled = true;
+        confirmBtn.style.opacity = '0.5';
+      } else {
+        document.getElementById('compactorResultPreview').textContent =
+          `${format12Hour(res.anchorStr)} – ${format12Hour(res.endStr)}`;
+        warningEl.style.display = 'none';
+        confirmBtn.disabled = false;
+        confirmBtn.style.opacity = '1';
+      }
+    }
+
+    document.getElementById('compactorAnchorInput').addEventListener('input', updateCompactorPreview);
+    document.getElementById('closeCompactorBtn').addEventListener('click', () => compactorDialog.close());
+    document.getElementById('cancelCompactorBtn').addEventListener('click', () => compactorDialog.close());
+
+    document.getElementById('confirmCompactorBtn').addEventListener('click', async () => {
+      const res = computeCompactedResult();
+      if (!res.valid || !state.compactorDate) return;
+
+      const dateKey = state.compactorDate;
+      if (!confirm(`Replace the original shifts on ${dateKey} with a single compacted interval (${format12Hour(res.anchorStr)} – ${format12Hour(res.endStr)}, ${formatMinutesHM(res.rawEval.rawMinutes)} raw)?`)) {
+        return;
+      }
+
+      pushUndoSnapshot(`Compacted shifts on ${dateKey}`);
+      const existingRec = state.daysMap[dateKey];
+      const updatedRecord = {
+        date: dateKey,
+        shifts: [{ in: res.anchorStr, out: res.endStr }],
+        compacted: true,
+        breakMode: normalizeBreakMode(existingRec && existingRec.breakMode)
+      };
+      state.daysMap[dateKey] = updatedRecord;
+      await dbSaveDay(updatedRecord);
+      compactorDialog.close();
+      renderAll();
+    });
+
+    /**************************************************************
+     * 10. SETTINGS, THEME, BACKUP & RESTORE
+     **************************************************************/
+    document.getElementById('rateTypeInput').addEventListener('change', (e) => {
+      document.getElementById('hoursPerDayGroup').style.display =
+        e.target.value === 'daily' ? 'block' : 'none';
+    });
+
+    document.getElementById('saveSettingsBtn').addEventListener('click', async () => {
+      const rateType = document.getElementById('rateTypeInput').value === 'daily' ? 'daily' : 'hourly';
+      const pesoRate = Math.max(0, parseFloat(document.getElementById('pesoRateInput').value) || 0);
+      const standardHours = Math.min(24, Math.max(1, parseFloat(document.getElementById('standardHoursInput').value) || 8));
+      const allowance = Math.max(0, parseFloat(document.getElementById('allowanceInput').value) || 0);
+
+      state.settings = {
+        ...state.settings,
+        rateType,
+        pesoRate,
+        standardHours,
+        allowance
+      };
+      const ok = await dbSaveKey('config', state.settings);
+      if (ok) {
+        renderAll();
+      }
+    });
+
+    async function setAndPersistTheme(themeName) {
+      applyThemeUI(themeName);
+      await dbSaveKey('config', state.settings);
+    }
+
+    document.getElementById('headerThemeBtn').addEventListener('click', () => {
+      const next = state.settings.theme === 'forest' ? 'mint' : 'forest';
+      setAndPersistTheme(next);
+    });
+
+    document.getElementById('themeForestBtn').addEventListener('click', () => setAndPersistTheme('forest'));
+    document.getElementById('themeMintBtn').addEventListener('click', () => setAndPersistTheme('mint'));
+
+    // Export JSON Backup (Includes daily shifts, day breakMode, per-cutoff break settings, and rate/theme settings)
+    document.getElementById('exportJsonBtn').addEventListener('click', () => {
+      const payload = {
+        app: 'KinsenasTimesheet',
+        version: 3,
+        exportedAt: new Date().toISOString(),
+        settings: state.settings,
+        cutoffSettingsMap: state.cutoffSettingsMap,
+        daysMap: state.daysMap
+      };
+      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `kinsenas-timesheet-backup-${new Date().toISOString().slice(0, 10)}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+    });
+
+    // Import & Validate JSON Backup (Backward-compatible with v1/v2 backups without break settings)
+    document.getElementById('importJsonBtn').addEventListener('click', () => {
+      document.getElementById('importFileInput').click();
+    });
+
+    function validateAndNormalizeBackup(raw) {
+      if (!raw || typeof raw !== 'object') {
+        throw new Error('File does not contain a valid JSON object.');
+      }
+      if (raw.app && !['KinsenasTimesheet', 'KinsenasStudio'].includes(raw.app)) {
+        throw new Error('Unrecognized backup application identifier.');
+      }
+      const rawDays = raw.daysMap;
+      if (!rawDays || typeof rawDays !== 'object' || Array.isArray(rawDays)) {
+        throw new Error('Backup is missing a valid timesheet records map (daysMap).');
+      }
+
+      const validatedDaysMap = {};
+      for (const [key, val] of Object.entries(rawDays)) {
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(key)) {
+          throw new Error(`Invalid date key "${key}" in backup.`);
+        }
+        if (!val || typeof val !== 'object' || !Array.isArray(val.shifts)) {
+          throw new Error(`Invalid record structure for date "${key}".`);
+        }
+        if (val.breakMode !== undefined && !['default', 'deduct', 'none'].includes(val.breakMode)) {
+          throw new Error(`Invalid breakMode "${val.breakMode}" on date "${key}".`);
+        }
+        const breakMode = normalizeBreakMode(val.breakMode);
+        const cleanShifts = [];
+        for (const sh of val.shifts) {
+          if (!sh || typeof sh !== 'object') {
+            throw new Error(`Invalid shift entry on "${key}".`);
+          }
+          const inStr = typeof sh.in === 'string' ? sh.in : '';
+          const outStr = typeof sh.out === 'string' ? sh.out : '';
+          if (inStr && parseTimeMinutes(inStr) === null) {
+            throw new Error(`Invalid Time In "${inStr}" on ${key}.`);
+          }
+          if (outStr && parseTimeMinutes(outStr) === null) {
+            throw new Error(`Invalid Time Out "${outStr}" on ${key}.`);
+          }
+          cleanShifts.push({ in: inStr, out: outStr });
+        }
+        if (cleanShifts.length > 0 || breakMode !== 'default') {
+          validatedDaysMap[key] = {
+            date: key,
+            shifts: cleanShifts,
+            compacted: Boolean(val.compacted),
+            breakMode
+          };
+        }
+      }
+
+      const validatedCutoffSettingsMap = {};
+      if (raw.cutoffSettingsMap !== undefined) {
+        if (!raw.cutoffSettingsMap || typeof raw.cutoffSettingsMap !== 'object' || Array.isArray(raw.cutoffSettingsMap)) {
+          throw new Error('Invalid cutoffSettingsMap format in backup.');
+        }
+        for (const [cKey, cVal] of Object.entries(raw.cutoffSettingsMap)) {
+          if (!/^\d{4}-\d{2}-[12]$/.test(cKey)) {
+            throw new Error(`Invalid cutoff key "${cKey}" in backup.`);
+          }
+          if (!cVal || typeof cVal !== 'object' || typeof cVal.deductBreakByDefault !== 'boolean') {
+            throw new Error(`Invalid cutoff break configuration for "${cKey}".`);
+          }
+          validatedCutoffSettingsMap[cKey] = {
+            cutoffKey: cKey,
+            deductBreakByDefault: cVal.deductBreakByDefault,
+            breakMinutes: STANDARD_BREAK_MINUTES
+          };
+        }
+      }
+
+      let validatedSettings = null;
+      if (raw.settings && typeof raw.settings === 'object') {
+        validatedSettings = {
+          rateType: raw.settings.rateType === 'daily' ? 'daily' : 'hourly',
+          pesoRate: Math.max(0, Number(raw.settings.pesoRate) || 0),
+          standardHours: Math.min(24, Math.max(1, Number(raw.settings.standardHours) || 8)),
+          allowance: Math.max(0, Number(raw.settings.allowance) || 0),
+          theme: raw.settings.theme === 'mint' ? 'mint' : 'forest'
+        };
+      }
+
+      return { validatedDaysMap, validatedSettings, validatedCutoffSettingsMap };
+    }
+
+    document.getElementById('importFileInput').addEventListener('change', (e) => {
+      const file = e.target.files && e.target.files[0];
+      e.target.value = '';
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = async (ev) => {
+        try {
+          const parsed = JSON.parse(ev.target.result);
+          const { validatedDaysMap, validatedSettings, validatedCutoffSettingsMap } = validateAndNormalizeBackup(parsed);
+          const dayCount = Object.keys(validatedDaysMap).length;
+          const existingCount = Object.keys(state.daysMap).length;
+
+          const confirmMsg = existingCount > 0
+            ? `Restore backup containing ${dayCount} recorded day(s)? This will replace your current ${existingCount} recorded day(s).`
+            : `Restore backup containing ${dayCount} recorded day(s)?`;
+
+          if (!confirm(confirmMsg)) return;
+
+          const previousSnapshot = {
+            daysMap: JSON.parse(JSON.stringify(state.daysMap)),
+            cutoffSettingsMap: JSON.parse(JSON.stringify(state.cutoffSettingsMap))
+          };
+          const mergedSettings = validatedSettings
+            ? { ...state.settings, ...validatedSettings }
+            : state.settings;
+
+          const ok = await dbReplaceDaysAtomic(validatedDaysMap, mergedSettings, validatedCutoffSettingsMap);
+          if (!ok) {
+            alert('Database error: Could not restore backup. Your existing data was preserved.');
+            return;
+          }
+
+          state.daysMap = validatedDaysMap;
+          state.settings = mergedSettings;
+          state.cutoffSettingsMap = validatedCutoffSettingsMap;
+          applyThemeUI(state.settings.theme);
+          populateSettingsForm();
+          renderAll();
+
+          state.undoSnapshot = previousSnapshot;
+          const toast = document.getElementById('undoToast');
+          document.getElementById('toastMessage').textContent = `Restored ${dayCount} day(s) from backup`;
+          toast.classList.add('show');
+        } catch (err) {
+          alert(`Restore failed: ${err.message || 'Malformed JSON backup file.'}`);
+        }
+      };
+      reader.readAsText(file);
+    });
+
+    // Clear Current Cutoff Records
+    document.getElementById('clearCutoffBtn').addEventListener('click', async () => {
+      const { dates, startDay, endDay } = getCutoffDates();
+      const existingInCutoff = dates.filter((d) => state.daysMap[d]);
+      if (existingInCutoff.length === 0) {
+        alert('There are no recorded shifts in the currently selected cutoff period.');
+        return;
+      }
+
+      const periodLabel = `${MONTH_SHORT[state.month]} ${startDay}–${endDay}, ${state.year}`;
+      if (!confirm(`Delete all recorded shifts for ${periodLabel} (${existingInCutoff.length} day${existingInCutoff.length === 1 ? '' : 's'})? You can undo immediately after.`)) {
+        return;
+      }
+
+      pushUndoSnapshot(`Deleted records for ${periodLabel}`);
+      const updatedMap = { ...state.daysMap };
+      existingInCutoff.forEach((d) => delete updatedMap[d]);
+
+      const ok = await dbReplaceDaysAtomic(updatedMap, null, null);
+      if (ok) {
+        state.daysMap = updatedMap;
+        renderAll();
+      }
+    });
+
+    /**************************************************************
+     * 11. INITIALIZATION & OFFLINE SERVICE WORKER
+     * Starts with an empty timesheet when no records exist.
+     **************************************************************/
+    async function initApp() {
+      try {
+        const savedSettings = await dbGetKey('config');
+        if (savedSettings && typeof savedSettings === 'object') {
+          state.settings = { ...state.settings, ...savedSettings };
+        }
+        applyThemeUI(state.settings.theme);
+
+        const savedCutoffSettings = await dbGetKey('cutoffSettingsMap');
+        if (savedCutoffSettings && typeof savedCutoffSettings === 'object' && !Array.isArray(savedCutoffSettings)) {
+          state.cutoffSettingsMap = savedCutoffSettings;
+        }
+
+        const savedPeriod = await dbGetKey('selectedPeriod');
+        if (
+          savedPeriod &&
+          typeof savedPeriod.year === 'number' &&
+          typeof savedPeriod.month === 'number' &&
+          savedPeriod.month >= 0 &&
+          savedPeriod.month <= 11 &&
+          (savedPeriod.cutoff === 1 || savedPeriod.cutoff === 2)
+        ) {
+          state.year = savedPeriod.year;
+          state.month = savedPeriod.month;
+          state.cutoff = savedPeriod.cutoff;
+        }
+
+        state.daysMap = await dbGetAllDays();
+
+        const todayKey = getTodayDateKey();
+        const { dates } = getCutoffDates();
+        if (dates.includes(todayKey)) {
+          state.expandedDate = todayKey;
+        } else {
+          state.expandedDate = null;
+        }
+
+        populateSettingsForm();
+        renderAll();
+      } catch (err) {
+        console.error('Initialization error:', err);
+        setSaveStatus('error', 'Storage error');
+        renderAll();
+      }
+
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('sw.js').catch(() => {});
+      }
+    }
+
+    initApp();
+  </script>
+</body>
+</html>
